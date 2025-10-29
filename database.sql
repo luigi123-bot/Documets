@@ -1,0 +1,6 @@
+-- ...existing SQL code...
+
+ALTER TABLE users
+  ALTER COLUMN password_hash DROP NOT NULL;
+
+-- ...existing SQL code...
