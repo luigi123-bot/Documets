@@ -49,7 +49,7 @@ export default function Navbar() {
               <span className="hidden sm:inline">Documentos</span>
             </Button>
           </Link>
-          <Link href="/">
+          <Link href="/OcrViewer">
             <Button
               variant="ghost"
               className="flex items-center gap-2 bg-[#E53935]/10 text-[#E53935] font-semibold px-4 py-2 rounded-full shadow hover:bg-[#E53935]/20 transition"
