@@ -1,97 +1,89 @@
-import { UserButton, useUser } from "@clerk/nextjs";
+"use client";
+
 import Image from "next/image";
 import React, { useState } from "react";
+import UserCreateForm from "./UserCreateForm";
+import { UserPlus, Folder, FileText, UserCircle } from "lucide-react";
+import Link from "next/link";
+import { Button } from "~/components/ui/button";
+import { useUser, UserButton } from "@clerk/nextjs";
 
 export default function Navbar() {
-  const { user } = useUser();
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const { user, isLoaded } = useUser();
 
-  // If ClerkProvider is missing, user will be undefined and useUser may throw an error.
-  // Optionally, you can check for user === undefined and show an error message.
-  if (user === undefined) {
-    return (
-      <nav className="w-full bg-[#E53935] px-8 py-6 flex items-center justify-between shadow-md">
-        <div className="flex items-center gap-6">
-          <Image
-            src="/Imagen de WhatsApp 2025-10-19 a las 20.00.12_2d85c3cb.jpg"
-            alt="DocuSafe Logo"
-            width={40}
-            height={40}
-            className="rounded-lg"
-          />
-          <span className="text-2xl font-bold text-white">DocuSafe</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-white font-medium">Error: ClerkProvider missing</span>
-        </div>
-      </nav>
-    );
-  }
+  // Obtiene el nombre del usuario desde Clerk
+  const userName =
+    isLoaded && user
+      ? (user.fullName ?? user.firstName ?? user.lastName ?? user.username ?? user.emailAddresses?.[0]?.emailAddress) ?? "Usuario"
+      : "Invitado";
 
-  const handleSync = async () => {
-    if (!user) return;
-    setSyncing(true);
-    setSyncMsg(null);
-    try {
-      const res = await fetch("/api/users/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clerkId: user.id,
-          email: user.emailAddresses?.[0]?.emailAddress,
-          full_name: user.fullName,
-          role: user.publicMetadata?.role ?? "empleado",
-        }),
-      });
-      if (res.ok) {
-        setSyncMsg("¡Usuario sincronizado!");
-        console.log("Usuario Clerk sincronizado con Supabase");
-      } else {
-        const data = (await res.json()) as { error?: string };
-        setSyncMsg("Error: " + (data.error ?? "Sincronización fallida"));
-        console.error("Error al sincronizar usuario Clerk con Supabase:", data.error);
-      }
-    } catch (err) {
-      setSyncMsg("Error inesperado");
-      console.error("Error al sincronizar usuario Clerk con Supabase:", err);
-    }
-    setSyncing(false);
-  };
+  const handleAddUser = () => setShowUserModal(true);
+  const handleCloseUserModal = () => setShowUserModal(false);
 
   return (
-    <nav className="w-full bg-[#E53935] px-6 py-4 flex items-center justify-between shadow-md">
-      <div className="flex items-center gap-4">
-        <Image
-          src="/Imagen de WhatsApp 2025-10-19 a las 20.00.12_2d85c3cb.jpg"
-          alt="DocuSafe Logo"
-          width={64}
-          height={64}
-          className="rounded-xl shadow-lg border-2 border-white"
-          priority
-        />
-        <span className="text-4xl font-extrabold text-white drop-shadow-lg">DocuSafe</span>
-      </div>
-      <div className="flex items-center gap-3">
-        {user ? (
-          <>
-            <span className="text-white font-medium">{user.fullName ?? "John Doe"}</span>
-            <button
-              onClick={handleSync}
-              disabled={syncing}
-              className="bg-white text-[#E53935] font-semibold px-4 py-2 rounded-lg shadow hover:bg-red-100 transition"
+    <>
+      <nav className="w-full bg-white border-b-4 border-[#E53935] shadow-md rounded-b-2xl px-8 py-3 flex items-center justify-between">
+        {/* Izquierda: Logo y nombre */}
+        <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-4">
+            <Image
+              src="/logo-sevillana.jpg" // Usa tu logo real aquí
+              alt="La Sevillana Logo"
+              width={48}
+              height={48}
+              className="rounded-xl bg-white border-2 border-[#E53935] shadow"
+              priority
+            />
+            <span className="text-3xl font-extrabold text-[#E53935] drop-shadow-lg tracking-tight">DocuSafe</span>
+          </Link>
+        </div>
+        {/* Derecha: Botones y usuario */}
+        <div className="flex items-center gap-4">
+          <Link href="/documents">
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2 bg-[#E53935]/10 text-[#E53935] font-semibold px-4 py-2 rounded-full shadow hover:bg-[#E53935]/20 transition"
             >
-              {syncing ? "Sincronizando..." : "Sincronizar usuario"}
-            </button>
-            {syncMsg && (
-              <span className="ml-2 text-sm text-white bg-[#E53935] px-2 py-1 rounded">{syncMsg}</span>
-            )}
+              <Folder className="w-5 h-5" />
+              <span className="hidden sm:inline">Documentos</span>
+            </Button>
+          </Link>
+          <Link href="/">
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2 bg-[#E53935]/10 text-[#E53935] font-semibold px-4 py-2 rounded-full shadow hover:bg-[#E53935]/20 transition"
+            >
+              <FileText className="w-5 h-5" />
+              <span className="hidden sm:inline">OCR</span>
+            </Button>
+          </Link>
+          <Button
+            onClick={handleAddUser}
+            className="flex items-center gap-2 bg-[#E53935] text-white font-semibold px-4 py-2 rounded-full shadow hover:bg-[#c62828] transition"
+          >
+            <UserPlus className="w-5 h-5" />
+            <span className="hidden sm:inline">Agregar usuario</span>
+          </Button>
+          {/* Usuario y perfil + menú Clerk */}
+          <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full border border-gray-200 shadow">
+            <UserCircle className="w-6 h-6 text-[#E53935]" />
+            <span className="font-medium text-gray-800">{userName}</span>
             <UserButton afterSignOutUrl="/" />
-          </>
-        ) : (
-          <span className="text-white font-medium">John Doe</span>
-        )}
-      </div>
-    </nav>
+          </div>
+        </div>
+      </nav>
+
+      {showUserModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="relative bg-transparent w-full max-w-lg p-0">
+            <UserCreateForm onClose={handleCloseUserModal} />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
+
+// No cambies nada aquí si el diseño es correcto.
+// Asegúrate de que Navbar solo se importe y use en el layout principal (por ejemplo, src/app/layout.tsx)

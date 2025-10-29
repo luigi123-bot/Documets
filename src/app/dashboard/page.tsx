@@ -2,7 +2,6 @@
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Navbar from "~/components/Navbar";
 import StatsCard from "~/components/StatsCard";
 import ActivityChart from "~/components/ActivityChart";
 import { Button } from "~/components/ui/button";
@@ -65,7 +64,6 @@ export default function DashboardPage() {
 
 	return (
 		<div className="min-h-screen bg-[#f9f9f9] font-sans">
-			<Navbar />
 			<main className="max-w-5xl mx-auto px-4 py-8">
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 					{stats.map((stat) => (
